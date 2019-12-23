@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import string
 from nltk.corpus import stopwords
@@ -9,21 +8,15 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVC
 
-
-#find dataset location
-# os.listdir("../final_project")
 
 # data input
 df = pd.read_csv('../SMS/spam.csv', encoding='latin-1')[['v1', 'v2']]
 df.columns = ['label', 'message']
 df.head().groupby('label').describe()
-# df.groupby('label').describe()
 print('total number of Ham and Spam message: ')
 print(df.groupby('label').size())
-
 
 
 #data cleaning function
@@ -47,19 +40,15 @@ process('It\'s holiday and we are playing cricket. Jeff is playing very well!!!'
 df['message'][:20].apply(process)
 
 
-
-
-
 tfidfv = TfidfVectorizer(analyzer=process)
 data = tfidfv.fit_transform(df['message'])
 mess = df.iloc[2]['message']
-print(5)
+# check data format
 print(mess)
 print(tfidfv.transform([mess]))
-print(6)
 j = tfidfv.transform([mess]).toarray()[0]
 
-
+# print all results
 print('index\tidf\ttfidf\tterm')
 for i in range(len(j)):
     if j[i] != 0:
@@ -85,8 +74,7 @@ spam_filter_SVC = Pipeline([
 
 
 
-
-
+# set data fit models
 x_train, x_test, y_train, y_test = train_test_split(df['message'], df['label'], test_size=0.30, random_state = 21)
 spam_filter_Naive_Bayes.fit(x_train, y_train)
 spam_filter_DecisionTree.fit(x_train, y_train)
@@ -111,6 +99,7 @@ for i in range(len(y_test)):
     if y_test.iloc[i] != predictions_SVC[i]:
         count_SVC += 1
 
+# print out result
 print('result for model Naive Bayes:')
 print('Total number of test cases', len(y_test))
 print('Number of wrong of predictions', count)
@@ -133,10 +122,7 @@ print(classification_report(predictions_SVC, y_test))
 
 
 
-
-
+# we choose the most efficient one--SVM model
 def detect_spam(s):
     return spam_filter_SVC.predict([s])[0]
 detect_spam('Your cash-balance is currently 500 pounds - to maximize your cash-in now, send COLLECT to 83600.')
-
-
