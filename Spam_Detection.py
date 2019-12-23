@@ -8,12 +8,16 @@ from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVC
+
 
 #find dataset location
 # os.listdir("../final_project")
 
 # data input
-df = pd.read_csv('../final_project/spam.csv', encoding='latin-1')[['v1', 'v2']]
+df = pd.read_csv('../SMS/spam.csv', encoding='latin-1')[['v1', 'v2']]
 df.columns = ['label', 'message']
 df.head().groupby('label').describe()
 # df.groupby('label').describe()
@@ -63,39 +67,76 @@ for i in range(len(j)):
 
 
 
-spam_filter = Pipeline([
-    ('vectorizer', TfidfVectorizer(analyzer=process)), # messages to weighted TFIDF score
-    ('classifier', MultinomialNB())                    # train on TFIDF vectors with Naive Bayes
+spam_filter_Naive_Bayes = Pipeline([
+    ('vectorizer', TfidfVectorizer(analyzer=process)),                              # messages to weighted TFIDF score
+    ('classifier', MultinomialNB())                                                 # train on TFIDF vectors with Naive Bayes
+])
+
+
+spam_filter_DecisionTree = Pipeline([
+    ('vectorizer', TfidfVectorizer(analyzer=process)),                              # messages to weighted TFIDF score
+    ('classifier', DecisionTreeClassifier())                                        # train on TFIDF vectors with Decision Tree
+])
+
+spam_filter_SVC = Pipeline([
+    ('vectorizer', TfidfVectorizer(analyzer=process)),                              # messages to weighted TFIDF score
+    ('classifier', SVC(kernel='linear'))                                            # train on TFIDF vectors with SVC
 ])
 
 
 
 
+
 x_train, x_test, y_train, y_test = train_test_split(df['message'], df['label'], test_size=0.30, random_state = 21)
-spam_filter.fit(x_train, y_train)
-predictions = spam_filter.predict(x_test)
+spam_filter_Naive_Bayes.fit(x_train, y_train)
+spam_filter_DecisionTree.fit(x_train, y_train)
+spam_filter_SVC.fit(x_train, y_train)
+
+predictions = spam_filter_Naive_Bayes.predict(x_test)
+predictions_DT = spam_filter_DecisionTree.predict(x_test)
+predictions_SVC = spam_filter_SVC.predict(x_test)
 count = 0
+count_DT = 0
+count_SVC = 0
 for i in range(len(y_test)):
     if y_test.iloc[i] != predictions[i]:
         count += 1
 
-print(7)
+for i in range(len(y_test)):
+    if y_test.iloc[i] != predictions_DT[i]:
+        count_DT += 1
+
+
+for i in range(len(y_test)):
+    if y_test.iloc[i] != predictions_SVC[i]:
+        count_SVC += 1
+
+print('result for model Naive Bayes:')
 print('Total number of test cases', len(y_test))
 print('Number of wrong of predictions', count)
-print(8)
 x_test[y_test != predictions]
-
-
-
-
 print(classification_report(predictions, y_test))
 
 
+print('result for model decision Tree:')
+print('Total number of test cases', len(y_test))
+print('Number of wrong of predictions', count_DT)
+x_test[y_test != predictions_DT]
+print(classification_report(predictions_DT, y_test))
+
+
+print('result for model SVC:')
+print('Total number of test cases', len(y_test))
+print('Number of wrong of predictions', count_SVC)
+x_test[y_test != predictions_SVC]
+print(classification_report(predictions_SVC, y_test))
 
 
 
 
 
 def detect_spam(s):
-    return spam_filter.predict([s])[0]
+    return spam_filter_SVC.predict([s])[0]
 detect_spam('Your cash-balance is currently 500 pounds - to maximize your cash-in now, send COLLECT to 83600.')
+
+
